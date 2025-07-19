@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Online Retail Customer Analysis Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Chosen Palette: Professional Blues & Grays -->
+  <!-- Application Structure Plan: A tabbed single-page application. Each tab corresponds to a key analysis type from the source report (Customer Segmentation, Sales Trends, etc.). This structure provides clear, organized navigation, allowing users to explore different analytical possibilities one at a time. The flow is user-driven, moving from a high-level topic (tab) to a specific, interactive example (chart + recommendation), making complex concepts easy to digest. -->
+  <!-- Visualization & Content Choices:
+        1. Customer Segmentation -> Bar Chart -> Goal: Organize/Compare -> Shows distribution of customers into segments. Actionable recommendations are provided for top segments.
+        2. Sales Trends -> Line Chart -> Goal: Change -> The standard and best way to show performance over time. The key insight (November peak) is highlighted.
+        3. Top Products -> Bar Chart -> Goal: Compare -> A horizontal bar chart is clearest for comparing product revenues.
+        4. Top Countries -> Bar Chart -> Goal: Compare -> A horizontal bar chart is clearer than a pie chart for comparing multiple countries.
+        All charts use Chart.js on a canvas element. -->
+  <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+    .chart-container { position: relative; width: 100%; max-width: 700px; margin-left: auto; margin-right: auto; height: 400px; }
+    @media (max-width: 768px) { .chart-container { height: 350px; } }
+    .nav-button { transition: all 0.3s ease; }
+    .nav-button.active { background-color: #1d4ed8; color: white; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); }
+    .content-section { display: none; }
+    .content-section.active { display: block; animation: fadeIn 0.5s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  </style>
+</head>
+<body class="text-slate-800">
+  <div class="container mx-auto p-4 md:p-8">
+    <header class="text-center mb-8">
+      <h1 class="text-3xl md:text-4xl font-bold text-slate-900">Online Retail Analysis &amp; Strategy</h1>
+      <p class="mt-2 text-lg text-slate-600">From Data to Decisions: A Deep Dive into Customer Behavior</p>
+    </header>
+
+    <nav class="flex flex-wrap justify-center gap-2 md:gap-4 mb-8">
+      <button data-target="segmentation" class="nav-button active text-sm md:text-base font-semibold py-2 px-4 rounded-full bg-white shadow-sm hover:bg-blue-100">Customer Segments</button>
+      <button data-target="trends" class="nav-button text-sm md:text-base font-semibold py-2 px-4 rounded-full bg-white shadow-sm hover:bg-blue-100">Sales Trends</button>
+      <button data-target="inventory" class="nav-button text-sm md:text-base font-semibold py-2 px-4 rounded-full bg-white shadow-sm hover:bg-blue-100">Top Products</button>
+      <button data-target="geo" class="nav-button text-sm md:text-base font-semibold py-2 px-4 rounded-full bg-white shadow-sm hover:bg-blue-100">Top Countries</button>
+    </nav>
+
+    <main>
+      <!-- Section 1: Customer Segmentation -->
+      <section id="segmentation" class="content-section active p-4 md:p-8 bg-white rounded-2xl shadow-lg">
+        <h2 class="text-2xl font-bold mb-2">Customer Segmentation (RFM)</h2>
+        <p class="mb-6 text-slate-600">Identifying our most valuable customers to tailor marketing efforts effectively.</p>
+        <div class="chart-container">
+          <canvas id="rfmChart"></canvas>
+        </div>
+        <div class="mt-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
+          <h3 class="font-bold text-lg text-blue-800">Actionable Recommendation</h3>
+          <p class="text-blue-700 mt-2">Target each segment with a unique campaign. For our 1,313 <b>Champions</b>, offer loyalty rewards and early access. For the 480 <b>Needs Attention</b> customers, send a follow-up survey to understand their needs better before they become at-risk.</p>
+        </div>
+      </section>
+
+      <!-- Section 2: Sales Trends -->
+      <section id="trends" class="content-section p-4 md:p-8 bg-white rounded-2xl shadow-lg">
+        <h2 class="text-2xl font-bold mb-2">Monthly Sales Trends</h2>
+        <p class="mb-6 text-slate-600">Understanding sales performance to optimize inventory and marketing.</p>
+        <div class="chart-container">
+          <canvas id="trendsChart"></canvas>
+        </div>
+        <div class="mt-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
+          <h3 class="font-bold text-lg text-blue-800">Actionable Recommendation</h3>
+          <p class="text-blue-700 mt-2">There is a massive, predictable sales spike every <b>November</b>, reaching over $1.1M. We must ensure inventory is fully stocked by October and launch holiday marketing campaigns early to capitalize on this peak demand period.</p>
+        </div>
+      </section>
+
+      <!-- Section 3: Top Products -->
+      <section id="inventory" class="content-section p-4 md:p-8 bg-white rounded-2xl shadow-lg">
+        <h2 class="text-2xl font-bold mb-2">Top Products by Revenue</h2>
+        <p class="mb-6 text-slate-600">Identifying our best-selling items to focus marketing and ensure availability.</p>
+        <div class="chart-container">
+          <canvas id="inventoryChart"></canvas>
+        </div>
+        <div class="mt-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
+          <h3 class="font-bold text-lg text-blue-800">Actionable Recommendation</h3>
+          <p class="text-blue-700 mt-2">The 'PAPER CRAFT, LITTLE BIRDIE' and 'REGENCY CAKESTAND 3 TIER' are major revenue drivers. These products should be featured prominently on the website's homepage and in marketing emails, and we must ensure they are never out of stock.</p>
+        </div>
+      </section>
+
+      <!-- Section 4: Geographic Sales -->
+      <section id="geo" class="content-section p-4 md:p-8 bg-white rounded-2xl shadow-lg">
+        <h2 class="text-2xl font-bold mb-2">Top Countries by Revenue</h2>
+        <p class="mb-6 text-slate-600">Pinpointing our most profitable markets to guide expansion and logistics.</p>
+        <div class="chart-container">
+          <canvas id="geoChart"></canvas>
+        </div>
+        <div class="mt-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
+          <h3 class="font-bold text-lg text-blue-800">Actionable Recommendation</h3>
+          <p class="text-blue-700 mt-2">The <b>United Kingdom</b> is overwhelmingly our primary market, generating over $7.2M in revenue. For growth, targeted digital marketing campaigns should be developed for the <b>Netherlands</b> and <b>EIRE</b>, the next largest markets.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const chartConfig = {
+        plugins: { legend: { display: false } },
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: { ticks: { font: { size: 10 } } },
+          y: { beginAtZero: true }
+        }
+      };
+
+      // --- REAL DATA FROM YOUR ANALYSIS ---
+      const rfmData = {
+        labels: ['Champions', 'Hibernating', 'Other', 'New Customers', 'Needs Attention', 'Potential Loyalists', 'At-Risk'],
+        datasets: [{
+          label: 'Number of Customers',
+          data: [1313, 915, 804, 520, 480, 288, 28],
+          backgroundColor: ['#4f46e5', '#60a5fa', '#a5b4fc', '#818cf8', '#facc15', '#c4b5fd', '#ef4444'],
+        }]
+      };
+
+      const salesMonthlyData = {
+        labels: ['Dec 2010', 'Jan 2011', 'Feb 2011', 'Mar 2011', 'Apr 2011', 'May 2011', 'Jun 2011', 'Jul 2011', 'Aug 2011', 'Sep 2011', 'Oct 2011', 'Nov 2011', 'Dec 2011'],
+        datasets: [{
+          label: 'Total Revenue',
+          data: [570422, 569445, 446085, 594732, 468374, 677355, 660585, 598962, 644539, 950692, 1035641, 1156205, 518332],
+          borderColor: '#4338ca',
+          backgroundColor: 'rgba(67, 56, 202, 0.1)',
+          tension: 0.3,
+          fill: true,
+          pointRadius: 2,
+        }]
+      };
+
+      const geoData = {
+        labels: ['United Kingdom', 'Netherlands', 'EIRE', 'Germany', 'France', 'Australia', 'Spain', 'Switzerland', 'Belgium', 'Sweden'],
+        datasets: [{
+          label: 'Total Revenue',
+          data: [7285362, 285446, 265262, 228678, 208738, 138453, 61558, 56443, 41196, 36794],
+          backgroundColor: ['#312e81', '#4338ca', '#4f46e5', '#6366f1', '#818cf8', '#a5b4fc', '#c7d2fe', '#e0e7ff', '#eef2ff', '#f9fafb'],
+        }]
+      };
+
+      const inventoryRevenueData = {
+        labels: ['PAPER CRAFT , LITTLE BIRDIE', 'REGENCY CAKESTAND 3 TIER', 'WHITE HANGING HEART T-LIGHT HOLDER', 'JUMBO BAG RED RETROSPOT', 'MEDIUM CERAMIC TOP STORAGE JAR', 'POSTAGE', 'PARTY BUNTING', 'ASSORTED COLOUR BIRD ORNAMENT', 'Manual', 'RABBIT NIGHT LIGHT'],
+        datasets: [{
+          label: 'Total Revenue',
+          data: [168469, 142592, 99668, 85040, 81404, 77803, 76098, 68984, 62462, 51251],
+          backgroundColor: ['#4338ca', '#4f46e5', '#6366f1', '#818cf8', '#a5b4fc', '#c7d2fe', '#e0e7ff', '#eef2ff', '#f9fafb', '#f0abfc'],
+        }]
+      };
+
+      let charts = {};
+
+      const createChart = (id, type, data, options = {}) => {
+        const ctx = document.getElementById(id).getContext('2d');
+        if (charts[id]) charts[id].destroy();
+        charts[id] = new Chart(ctx, { type, data, options: { ...chartConfig, ...options } });
+      };
+
+      const navButtons = document.querySelectorAll('.nav-button');
+      const contentSections = document.querySelectorAll('.content-section');
+
+      const activateSection = (targetId) => {
+        navButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.target === targetId));
+        contentSections.forEach(sec => sec.classList.toggle('active', sec.id === targetId));
+
+        switch (targetId) {
+          case 'segmentation': createChart('rfmChart', 'bar', rfmData, { plugins: { title: { display: true, text: 'Customer Distribution by RFM Segment' } } }); break;
+          case 'trends': createChart('trendsChart', 'line', salesMonthlyData, { plugins: { title: { display: true, text: 'Monthly Sales Revenue' } } }); break;
+          case 'geo': createChart('geoChart', 'bar', geoData, { indexAxis: 'y', plugins: { title: { display: true, text: 'Top 10 Countries by Revenue' } } }); break;
+          case 'inventory': createChart('inventoryChart', 'bar', inventoryRevenueData, { indexAxis: 'y', plugins: { title: { display: true, text: 'Top 10 Products by Revenue' } } }); break;
+        }
+      };
+
+      navButtons.forEach(button => {
+        button.addEventListener('click', () => activateSection(button.dataset.target));
+      });
+
+      activateSection('segmentation');
+    });
+  </script>
+</body>
+</html>
